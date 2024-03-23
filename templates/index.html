@@ -3,57 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Diabetes Prediction Using Support Vector Machine</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .prediction-result {
+            margin-top: 20px;
+        }
+
+        .prediction-result p {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f8d7da;
+            border-radius: 5px;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">{{ title }}</h1>
-        <form method="POST" action="/predict">
-            <div class="form-group">
-                <label for="pregnancies">Number of Pregnancies:</label>
-                <input type="number" class="form-control" id="pregnancies" name="pregnancies" required>
-            </div>
-            <div class="form-group">
-                <label for="glucose">Glucose Level (mg/dL):</label>
-                <input type="number" class="form-control" id="glucose" name="glucose" required>
-            </div>
-            <div class="form-group">
-                <label for="blood_pressure">Blood Pressure (mmHg):</label>
-                <input type="number" class="form-control" id="blood_pressure" name="blood_pressure" required>
-            </div>
-            <div class="form-group">
-                <label for="skin_thickness">Skin Thickness (mm):</label>
-                <input type="number" class="form-control" id="skin_thickness" name="skin_thickness" required>
-            </div>
-            <div class="form-group">
-                <label for="insulin">Insulin Level (mu U/ml):</label>
-                <input type="number" class="form-control" id="insulin" name="insulin" required>
-            </div>
-            <div class="form-group">
-                <label for="bmi">Body Mass Index (BMI):</label>
-                <input type="number" step="0.01" class="form-control" id="bmi" name="bmi" required>
-            </div>
-            <div class="form-group">
-                <label for="diabetes_pedigree_function">Diabetes Pedigree Function:</label>
-                <input type="number" step="0.001" class="form-control" id="diabetes_pedigree_function" name="diabetes_pedigree_function" required>
-            </div>
-            <div class="form-group">
-                <label for="age">Age (years):</label>
-                <input type="number" class="form-control" id="age" name="age" required>
-            </div>
-            
-            <button type="submit" class="btn btn-primary">Predict</button>
+    <div class="container">
+        <h1>Diabetes Prediction Using Support Vector Machine</h1>
+        <form action="/predict" method="post">
+            <label for="pregnancies">Pregnancies:</label>
+            <input type="text" id="pregnancies" name="pregnancies" value="{{ pregnancies }}" pattern="[0-9]+(\.[0-9]{1,3})?" required>
+
+            <label for="glucose">Glucose:</label>
+            <input type="text" id="glucose" name="glucose" value="{{ glucose }}" pattern="[0-9]+(\.[0-9]{1,3})?" required>
+
+            <label for="blood_pressure">Blood Pressure:</label>
+            <input type="text" id="blood_pressure" name="blood_pressure" value="{{ blood_pressure }}" pattern="[0-9]+(\.[0-9]{1,3})?" required>
+
+            <label for="skin_thickness">Skin Thickness:</label>
+            <input type="text" id="skin_thickness" name="skin_thickness" value="{{ skin_thickness }}" pattern="[0-9]+(\.[0-9]{1,3})?" required>
+
+            <label for="insulin">Insulin:</label>
+            <input type="text" id="insulin" name="insulin" value="{{ insulin }}" pattern="[0-9]+(\.[0-9]{1,3})?" required>
+
+            <label for="bmi">BMI:</label>
+            <input type="text" id="bmi" name="bmi" value="{{ bmi }}" pattern="[0-9]+(\.[0-9]{1,3})?" required>
+
+            <label for="diabetes_pedigree_function">Diabetes Pedigree Function:</label>
+            <input type="text" id="diabetes_pedigree_function" name="diabetes_pedigree_function" value="{{ diabetes_pedigree_function }}" pattern="[0-9]+(\.[0-9]{1,3})?" required>
+
+            <label for="age">Age:</label>
+            <input type="text" id="age" name="age" value="{{ age }}" pattern="[0-9]+(\.[0-9]{1,3})?" required>
+
+            <button type="submit">Predict</button>
         </form>
-        
-        <!-- Display prediction result if it exists -->
-        {% if result %}
-        <div class="mt-4">
-            <h3 class="text-center">Prediction Result:</h3>
-            <h4 class="text-center">{{ result }}</h4>
-        </div>
+
+        {% if prediction_result is defined %}
+            <div class="prediction-result">
+                <p>The patient is {% if prediction_result == 1 %} Diabetic. {% else %} Non-Diabetic. {% endif %}</p>
+            </div>
         {% endif %}
     </div>
+
+    <script>
+        // JavaScript code to keep input values after form submission
+        window.onload = function() {
+            let form = document.querySelector('form');
+            let inputs = form.querySelectorAll('input[type="text"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    localStorage.setItem(input.id, input.value);
+                });
+                input.value = localStorage.getItem(input.id) || '';
+            });
+        };
+    </script>
 </body>
 </html>
-
